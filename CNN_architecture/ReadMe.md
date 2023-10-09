@@ -2,4 +2,4 @@
 
 More details will be coming soon...
 
-![cnn_demo](./pic/cnn_demo.png, "CNN demo")
+![cnn_demo](./pic/cnn_demo.png)
