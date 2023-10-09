@@ -1,0 +1,150 @@
+\begin{figure}
+	\centering
+	\noindent\resizebox{\textwidth}{!}{
+		\begin{tikzpicture}
+			% \tikzstyle{every node}
+			%\draw[use as bounding box, transparent] (-1.8,-1.8) rectangle (17.2, 3.2);
+			
+			\newcommand{\linker}[4]{
+				% 1st arg: List, from_nodes
+				% 2nd arg: to_node
+				% 3rd arg: line segments style, e.g. --, |-, circle, etc.
+				% 4th arg: line style: default: line width=0.3mm
+				
+				% \def\linestyle{{line width=0.3mm}}
+				% \ifthenelse{\equal{#4}{}}{}{\def\linestyle{#4}}
+				
+				\foreach \val in #1
+					\draw[line width=0.3mm] (\val) #3 (#2);
+			
+			}
+			\newcommand{\blocker}[6]{
+				% Define the macro.
+				% 1st argument: Height and width of the layer rectangle slice.
+				% 2nd argument: Depth of the layer slice
+				% 3rd argument: X Offset --> use it to offset layers from previously drawn layers.
+				% 4th argument: Y Offset --> Use it when an output needs to be fed to multiple layers that are on the same X offset.
+				% 5th argument: Z Offset --> Use to offset layers from previous 
+				% 6th argument: Name of coordinates. When name = "start" this resets the offset counter
+				
+				
+				\xdef\totalOffset{\totalOffset}
+				\ifthenelse{\equal{#4} {start}}
+				{\FPset{totalOffset}{0}}
+				{}
+				\FPeval\currentOffset{0+(totalOffset)+(#3)}
+				
+				\def\hw{#1} % Used to distinguish input resolution for current layer.
+				
+				\def\c{#2} % Width of the cube to distinguish number of input channels for current layer.
+				\def\x{\currentOffset} % X offset for current layer.
+				\def\y{#4} % Y offset for current layer.
+				\def\z{#5} % Z offset for current layer.
+				
+				\coordinate (#6_front) at  (\x+\c  , \z      , \y);
+				\coordinate (#6_back) at   (\x     , \z      , \y);
+				\coordinate (#6_top) at    (\x+\c/2, \z+\hw/2, \y);
+				\coordinate (#6_bottom) at (\x+\c/2, \z-\hw/2, \y);
+				\coordinate (#6_left) at   (\x+\c/2, \z,  \y-\c/2);
+				\coordinate (#6_right) at  (\x+\c/2, \z,  \y+\c/2);
+				
+				\coordinate (#6_blr) at (\c+\x,  -\hw/2+\z,  -\hw/2+\y); %back lower right
+				\coordinate (#6_bur) at (\c+\x,   \hw/2+\z,  -\hw/2+\y); %back upper right
+				\coordinate (#6_bul) at (0 +\x,   \hw/2+\z,  -\hw/2+\y); %back upper left
+				\coordinate (#6_fll) at (0 +\x,  -\hw/2+\z,   \hw/2+\y); %front lower left
+				\coordinate (#6_flr) at (\c+\x,  -\hw/2+\z,   \hw/2+\y); %front lower right
+				\coordinate (#6_fur) at (\c+\x,   \hw/2+\z,   \hw/2+\y); %front upper right
+				\coordinate (#6_ful) at (0 +\x,   \hw/2+\z,   \hw/2+\y); %front upper left
+				
+				\FPeval\totalOffset{0+(currentOffset)+\c}
+				
+			}
+			
+			\newcommand{\drawing}[3]{
+				%1 node name
+				%2 Text showing below
+				%3 Options for filldraw.
+
+				\def\b{0.02};
+				\def\inText{#2};
+
+				\coordinate (blr) at (#1_blr);
+				\coordinate (bur) at (#1_bur);
+				\coordinate (bul) at (#1_bul);
+				\coordinate (fll) at (#1_fll);
+				\coordinate (flr) at (#1_flr);
+				\coordinate (fur) at (#1_fur);
+				\coordinate (ful) at (#1_ful);
+
+				\draw[line width=0.3mm](blr) -- (bur) -- (bul);
+				% front plane
+				\draw[line width=0.3mm](fll) -- (flr) node[midway,below] {\inText} -- (fur) -- (ful) -- (fll);
+				\draw[line width=0.3mm](blr) -- (flr);
+				\draw[line width=0.3mm](bur) -- (fur);
+				\draw[line width=0.3mm](bul) -- (ful);
+				
+				% Recolor visible surfaces
+				% front plane
+				\filldraw[#3] ($(fll)+(\b,\b,0)$) -- ($(flr)+(-\b,\b,0)$) -- ($(fur)+(-\b,-\b,0)$) -- ($(ful)+(\b,-\b,0)$) -- ($(fll)+(\b,\b,0)$);
+				\filldraw[#3] ($(ful)+(\b,0,-\b)$) -- ($(fur)+(-\b,0,-\b)$) -- ($(bur)+(-\b,0,\b)$) -- ($(bul)+(\b,0,\b)$);
+				
+				% Colored slice.
+				\ifthenelse {\equal{#3} {}}{} % Do not draw colored slice if #4 is blank.
+				% Else, draw a colored slice.
+				{\filldraw[#3] ($(flr)+(0,\b,-\b)$) -- ($(blr)+(0,\b,\b)$) -- ($(bur)+(0,-\b,\b)$) -- ($(fur)+(0,-\b,-\b)$);}
+
+			}
+			
+			%\blocker{HW}{Depth}{xoff}{yoff}{zoff}{Name}
+			%\drawing{Name}{Text_show_below}{filldraw option}
+			%\linker{from_nodes}{to_node}{seg_style}{line_style}
+			
+			% % INPUT
+			\blocker{3.0}{0.03}{0.0}{0.0}{0.0}{start}
+			
+			% % ENCODER
+			\blocker{3.0}{0.3}{0.4}{0.0}{0.0}{e1}
+			\blocker{2.0}{0.5}{0.1}{0.0}{0.0}{e2}
+			\blocker{1.0}{0.8}{0.1}{0.0}{0.0}{e3}
+			\blocker{0.4}{1.2}{0.1}{0.0}{0.0}{e4}
+			
+			\blocker{0.4}{1.2}{0.1}{0.0}{0.0}{d4}
+			\blocker{1.0}{0.8}{0.1}{0.0}{0.0}{d3}
+			\blocker{2.0}{0.5}{0.3}{0.0}{0.0}{d2}
+			\blocker{3.0}{0.3}{0.6}{0.0}{0.0}{d1}
+
+			\blocker{2.0}{0.5}{-1.1}{0.0}{4.0}{bd2}
+			\blocker{3.0}{0.3}{0.4}{0.0}{4.0}{bd1}
+
+
+			\blocker{3.0}{0.03}{2.0}{0.0}{2.0}{output}
+
+			
+			\drawing{start}{}{color=gray!80}
+			
+			\drawing{e1}{}{color=white}
+			\drawing{e2}{}{color=white}
+			\drawing{e3}{}{color=white}
+			\drawing{e4}{}{color=white}
+			
+			\drawing{d4}{}{color=cyan, opacity=0.5}
+			\drawing{d3}{}{color=white}
+			\drawing{d2}{}{color=white}
+			\drawing{d1}{}{color=white}
+
+			\linker{{e2_top, d4_top}}{bd2_back}{|-}{}
+
+			
+			\drawing{bd2}{}{color=purple}
+			\drawing{bd1}{}{color=green, opacity=0.8}
+
+			\linker{{bd1_front, d1_front}}{output_back}{--}{}
+			
+			\drawing{output}{}{color=blue}
+			
+			
+	\end{tikzpicture}
+	}
+	\caption{Basic encoder-decoder architecture.}
+	\label{fig:cnn}
+\end{figure}
